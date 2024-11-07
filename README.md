@@ -7,14 +7,14 @@
 
 ![Vinicius GitHub stats](https://github-readme-stats.vercel.app/api?username=vinicius-neto&show_icons=true&theme=radical)
 
-### Automações via código:
+### Automações via código
 <div style="display: inline_block"><br/>
     <img align="center" alt="python" src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
     <img align="center" alt="selenium" src="https://img.shields.io/badge/-selenium-%43B02A?style=for-the-badge&logo=selenium&logoColor=white" />
 </div>
 
 
-### Automações via ferramentas low-code:
+### Automações via ferramentas low-code
 <div>
     <img align="center" alt="uipath" src="https://seekvectorlogo.com/wp-content/uploads/2019/07/uipath-vector-logo-small.png" height="75" width="100">
 </div>
