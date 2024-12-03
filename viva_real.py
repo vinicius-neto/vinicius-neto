@@ -7,12 +7,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from time import sleep
 from openpyxl import load_workbook
+import undetected_chromedriver as uc
 
 # Abrindo o navegador
-navegador = webdriver.Chrome()
+navegador = uc.Chrome()
 navegador.get("https://www.vivareal.com.br/")
 navegador.maximize_window()
-sleep(1)
 
 
 # Carregando a planilha
@@ -47,7 +47,7 @@ for linha in range(2, sheet.max_row +1):
     sleep(5)
       
     checkbox = WebDriverWait(navegador, 5).until(
-        EC.visibility_of_element_located((By.XPATH, './/div[@class="l-checkbox__input-wrapper"]/input[@id="l-checkbox-11"]')))
+        EC.visibility_of_element_located((By.XPATH, './/input[@id="l-checkbox-4"]')))
     
     checkbox.click()
     sleep(1)
