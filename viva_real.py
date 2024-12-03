@@ -41,21 +41,23 @@ for linha in range(2, sheet.max_row +1):
         sleep(1)
 
     
-        preencher = navegador.find_element(By.XPATH, './/input[@type="text"]')
-        preencher.clear()
-        preencher.send_keys(f"{nome_bairro} {nome_cidade}")
-        sleep(1)
+    preencher = navegador.find_element(By.XPATH, './/input[@type="text"]')
+    preencher.clear()
+    preencher.send_keys(f"{nome_bairro} {nome_cidade}")
+    sleep(5)
+      
+    checkbox = WebDriverWait(navegador, 5).until(
+        EC.visibility_of_element_located((By.XPATH, './/div[@class="l-checkbox__input-wrapper"]/input[@id="l-checkbox-11"]')))
+    
+    checkbox.click()
+    sleep(1)
         
-        
-        
-        
-        
-        botao_buscar = navegador.find_element(By.XPATH, './/button[@type="submit"]').click()
-        sleep(1)
+    botao_buscar = navegador.find_element(By.XPATH, './/button[@type="submit"]').click()
+    sleep(1)
         
         
 
 
 
-input('Enter')
+input('Enter para encerrar...')
     
