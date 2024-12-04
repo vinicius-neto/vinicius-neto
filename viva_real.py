@@ -3,7 +3,7 @@
 # Depois de pesquisar, tem que ir anuncio em anuncio e pegando as fotos e criar um PDF com as Fotos e tirar um print da pagina do anuncio. 
 # Precisa pegar a data e a hora que foi feita a pesquisa e o link de cada resultado que retornou
 
-from selenium import webdriver
+
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -26,11 +26,12 @@ sleep(1)
 
 
 # Percorrendo as linhas
-for linha in range(2, sheet.max_row +1):
-    nome_bairro = sheet[f'A{linha}'].value
-    nome_cidade = sheet[f'B{linha}'].value
-    tipo_contrato = sheet[f'C{linha}'].value
+for linha in sheet.iter_rows(2, sheet.max_row +1, values_only=True):
+    nome_bairro, nome_cidade, tipo_contrato = linha
     
+    print(nome_bairro)
+    print(nome_cidade)
+    print(tipo_contrato)
     # Localizando elementos comprar ou alugar
     contrato_alugar = navegador.find_element(By.XPATH, './/button[@data-cy="home-rent-tb-tab"]').text
     contrato_comprar = navegador.find_element(By.XPATH, './/button[@data-cy="home-buy-tb-tab"]').text
@@ -66,16 +67,27 @@ for linha in range(2, sheet.max_row +1):
     
     # Localizando elemento pai
     imoveis = navegador.find_elements(By.XPATH, './/div[@data-type="property"]')
-    aba_original = navegador.current_window_handle
+    
         
     for imovel in imoveis:
         acessar_anuncio = navegador.find_element(By.XPATH, './/div[@class="property-card__content"]').click()
-        sleep(3)
+        sleep(4)
         
-        valor_imovel = navegador.find_element(By. XPATH, './/p[@data-testid="price-info-value"]').text
+        abas = navegador.window_handles
+        navegador.switch_to.window(abas[-1])
+        sleep(1)
+        
+        valor_imovel = navegador.find_element(By.XPATH, './/p[@data-testid="price-info-value"]').text
+        print(valor_imovel)
+
         area_imovel = navegador.find_element(By.XPATH, './/p[@itemprop="floorSize"]/span[@data-cy="ldp-propertyFeatures-txt"]').text
+        print(area_imovel)
+        
         cresci = navegador.find_element(By.XPATH, '/html/body/div[2]/div[2]/div[1]/div/div/div/div[1]/div/div/div[2]/p').text
+        print(cresci)
+        
         imobiliaria = navegador.find_element(By.XPATH, '/html/body/div[2]/div[2]/div[1]/div/div/div/div[1]/div/div/div[2]/div/p').text
+        print(imobiliaria)
         
         botao_ver_telefone = navegador.find_element(By.XPATH, '/html/body/div[2]/div[1]/div[1]/div[2]/section/div[3]/button').click()
         telefone1 = WebDriverWait(navegador, 5).until(EC.visibility_of_element_located((By.XPATH, './/a[@data-cy="lead-modalPhone-phonesList-txt"][1]')))
@@ -83,7 +95,8 @@ for linha in range(2, sheet.max_row +1):
         
         url = navegador.current_url   
         
-        lista_imoveis.append({'valor_imovel': valor_imovel, 'area_imovel': area_imovel, 'cresci': cresci, 'imobiliaria': imobiliaria, 'telefone1': telefone1, 'telefone2': telefone2, 'url': url})
+        lista_imoveis.append({'valor_imovel': valor_imovel, 'area_imovel': area_imovel, 'cresci': cresci,
+                              'imobiliaria': imobiliaria, 'telefone1': telefone1, 'telefone2': telefone2, 'url': url})
         
         navegador.close()
         
