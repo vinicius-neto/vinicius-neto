@@ -14,7 +14,6 @@ import undetected_chromedriver as uc
 
 # Abrindo o navegador
 navegador = uc.Chrome()
-navegador.get("https://www.vivareal.com.br/")
 navegador.maximize_window()
 sleep(5)
 
@@ -26,9 +25,11 @@ sleep(1)
 
 
 # Percorrendo as linhas
-for linha in sheet.iter_rows(2, sheet.max_row +1, values_only=True):
+for linha in sheet.iter_rows(2, sheet.max_row, values_only=True):
     nome_bairro, nome_cidade, tipo_contrato = linha
     
+    #Acessando o site
+    navegador.get("https://www.vivareal.com.br/")
     
     # Localizando elementos comprar ou alugar
     contrato_alugar = navegador.find_element(By.XPATH, './/button[@data-cy="home-rent-tb-tab"]').text
@@ -90,30 +91,52 @@ for linha in sheet.iter_rows(2, sheet.max_row +1, values_only=True):
         # Capturando a área do imóvel
         area_imovel = navegador.find_element(By.XPATH, './/p[@itemprop="floorSize"]/span[@data-cy="ldp-propertyFeatures-txt"]').text
         sleep(1)
-        #imobiliaria = navegador.find_element(By.XPATH, '(//div/a[@title="Loja Oficial do Anunciante"])[2]').text
+        
+        
+        imobiliaria = navegador.find_element(By.XPATH, '(//div/a[@title="Loja Oficial do Anunciante"])[2]').text
+        sleep(1)
+        
+        try:
+            cresci = WebDriverWait(navegador, 5).until(EC.visibility_of_element_located((
+                By.XPATH, '(.//div[@class="advertiser-header__infos-wrapper"]/p/text()[2])[2]'))).text
+        
+        except :
+            cresci = "sem creci"
+        sleep(1)
+        
         
         # Localizando e clicando o elemento do botão que expõe o(s) telefone(s)
         botao_ver_telefone = navegador.find_element(By.XPATH, '/html/body/div[2]/div[1]/div[1]/div[2]/section/div[3]/button').click()
-        sleep(20)
-        
+        sleep(2)
+
+        # Ao clicar pra visualizar o telefone a primeira vez, é solicitado algumas infos, então coloquei pra checar se o elemento
+        # de cadastro de nome está visível, se estiver vai seguinte o fluxo do cadastro, se não vai continuar o fluxo normal
+        try:
+            cadastro_nome = WebDriverWait(navegador, 3).until(EC.visibility_of_element_located((
+                By.XPATH, '(.//input[@placeholder="Nome"])[3]')))
+            cadastro_nome.send_keys("Teste")
+            
+            cadastro_telefone = navegador.find_element(By.XPATH, '(.//input[@placeholder="Telefone"])[3]')
+            cadastro_telefone.send_keys("3525817339")
+            
+            cadastro_email = navegador.find_element(By.XPATH, '(.//input[@placeholder="E-mail"])[3]')
+            cadastro_email.send_keys("teste@teste.com")
+            
+            botao_submit = navegador.find_element(By.XPATH, '(.//button[@type="submit"])[3]').click()
+            sleep(2)
+        except:
+            print("Elemento não encontrado, seguindo o fluxo...")      
+               
         # Captura o primeiro telefone
         telefone1 = WebDriverWait(navegador, 5).until(EC.visibility_of_element_located((By.XPATH, './/a[@data-cy="lead-modalPhone-phonesList-txt"][1]'))).text
         sleep(1)
         
-        # Alguns anúncios tem dois telefones, então Vai aguardar 5 segundo e verificar se o elemento do segundo telefone está na tela,
+        # Alguns anúncios tem dois telefones, então vai aguardar 5 segundos e verificar se o elemento do segundo telefone está na tela,
         # se estiver ele captura, se não estiver a variável receberá "Sem Telefone"
         try:
             telefone2 = WebDriverWait(navegador, 5).until(EC.visibility_of_element_located((By.XPATH, '(.//a[@data-cy="lead-modalPhone-phonesList-txt"])[2]'))).text
         except:
             telefone2 = "Sem telefone"
-        sleep(1)
-        
-        
-        try:
-            cresci = WebDriverWait(navegador, 5).until(EC.visibility_of_element_located((By.XPATH, './/p[@class="ShortListingInfoSection_advertiser__EA_EW"]'))).text
-        
-        except :
-            cresci = "sem creci"
         sleep(1)
         
         # Capturando a URL da página atual
@@ -125,14 +148,14 @@ for linha in sheet.iter_rows(2, sheet.max_row +1, values_only=True):
                               'telefone1': telefone1, 'telefone2': telefone2, 'url': url})
         
         
-        print(tipo_contrato)
-        print(valor_imovel)
-        print(area_imovel)
-        print(cresci)
-        #print(imobiliaria)
-        print(telefone1)
-        print(telefone2)
-        print(url)
+        print(f"Tipo de contrato: {tipo_contrato}")
+        print(f"Valor do imóvel: {valor_imovel}")
+        print(f"Área do imóvel: {area_imovel}")
+        print(f"Creci: {cresci}")
+        print(f"Imobiliária: {imobiliaria}")
+        print(f"Telefone 1: {telefone1}")
+        print(f"Telefone 2: {telefone2}")
+        print(f"URL da página: {url}")
         print("-" * 70)
         
         navegador.close()
