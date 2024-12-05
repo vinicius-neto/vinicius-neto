@@ -1,4 +1,4 @@
-# [15:59, 02/12/2024] Jou:  - Pesquisa no site da viva real. Vai ter uma planilha de input, com o nome do bairro e da cidade, com o tipo de contrato(aluguel ou compra) 
+# Pesquisa no site da viva real. Vai ter uma planilha de input, com o nome do bairro e da cidade, com o tipo de contrato(aluguel ou compra) 
 # e você tem que capturar: Valor, Area, Cresci, Imobiliaria e telefone.
 # Depois de pesquisar, tem que ir anuncio em anuncio e pegando as fotos e criar um PDF com as Fotos e tirar um print da pagina do anuncio. 
 # Precisa pegar a data e a hora que foi feita a pesquisa e o link de cada resultado que retornou
@@ -15,51 +15,56 @@ import undetected_chromedriver as uc
 # Abrindo o navegador
 navegador = uc.Chrome()
 navegador.maximize_window()
-sleep(5)
+sleep(2)
 
 # Carregando a planilha
 planilha = 'Viva_Real.xlsx'
 abrir_planilha = load_workbook(planilha)
 sheet = abrir_planilha['Planilha1']
-sleep(1)
+
 
 
 # Percorrendo as linhas
 for linha in sheet.iter_rows(2, sheet.max_row, values_only=True):
     nome_bairro, nome_cidade, tipo_contrato = linha
-    
+       
     #Acessando o site
-    navegador.get("https://www.vivareal.com.br/")
-    
-    # Localizando elementos comprar ou alugar
-    contrato_alugar = navegador.find_element(By.XPATH, './/button[@data-cy="home-rent-tb-tab"]').text
-    contrato_comprar = navegador.find_element(By.XPATH, './/button[@data-cy="home-buy-tb-tab"]').text
+    #navegador.get("https://www.vivareal.com.br/")
+    #sleep(3)
+       
+    # Criando as variáveis para comparar com a planilha e acessar o site baseado no resultado da condição
+    contrato_alugar = "Alugar"
+    contrato_comprar = "Comprar"
 
     # Comparando contrato da planilha com o do site
     if tipo_contrato == contrato_alugar:
-        contrato_alugar = navegador.find_element(By.XPATH, './/button[@data-cy="home-rent-tb-tab"]').click()
-        sleep(1)
+        #contrato_alugar = navegador.find_element(By.XPATH, './/button[@data-cy="home-rent-tb-tab"]').click()
+        navegador.get("https://www.vivareal.com.br/aluguel/")
+        sleep(3)
     else:
-        contrato_comprar = navegador.find_element(By.XPATH, './/button[@data-cy="home-buy-tb-tab"]').click()
-        sleep(1)
+        navegador.get("https://www.vivareal.com.br/venda/")
+        sleep(3)
 
     #Localizando campo de pesquisa e preenchendo.
-    preencher = navegador.find_element(By.XPATH, './/input[@type="text"]')
+    preencher = navegador.find_element(By.XPATH, './/input[@name="search"]')
     preencher.clear()
     preencher.send_keys(f"{nome_bairro} {nome_cidade}")
-    sleep(5)
+    sleep(2)
+    preencher.send_keys(Keys.ENTER)
+    sleep(3)
     
-    # Aguardando o elemento aparecer
-    checkbox = WebDriverWait(navegador, 5).until(
-        EC.visibility_of_element_located((By.XPATH, './/input[@id="l-checkbox-4"]')))
     
-    # Clica no elemento
-    checkbox.click()
-    sleep(1)
+    # # Aguardando o elemento aparecer
+    # checkbox = WebDriverWait(navegador, 5).until(
+    #     EC.visibility_of_element_located((By.XPATH, './/input[@id="l-checkbox-4"]')))
     
-    # Clica no botão de buscar
-    botao_buscar = navegador.find_element(By.XPATH, './/button[@type="submit"]').click()
-    sleep(5)
+    # # Clica no elemento
+    # checkbox.click()
+    # sleep(1)
+    
+    # # Clica no botão de buscar
+    # botao_buscar = navegador.find_element(By.XPATH, './/button[@type="submit"]').click()
+    # sleep(5)
     
     # Criando variável que vai receber lista de imoveis
     lista_imoveis = []
@@ -67,8 +72,12 @@ for linha in sheet.iter_rows(2, sheet.max_row, values_only=True):
     # Localizando elemento pai
     imoveis = navegador.find_elements(By.XPATH, './/div[@data-type="property"]')
     
+    # Contador para teste
+    contador = 0
     # Criando o loop que vai utilizar o elemento pai de base, onde vai passar anuncio por anuncio    
     for imovel in imoveis:
+        if contador>=2:
+            break
         
         # Setando a aba da pesquisa como principal
         aba_principal = navegador.current_window_handle
@@ -84,9 +93,13 @@ for linha in sheet.iter_rows(2, sheet.max_row, values_only=True):
         navegador.switch_to.window(abas[-1])
         sleep(1)
         
-        #Capturando o valor do imóvel
-        valor_imovel = navegador.find_element(By.XPATH, './/p[@data-testid="price-info-value"]').text
-        sleep(1)
+        try:
+            #Capturando o valor do imóvel
+            valor_imovel = WebDriverWait(navegador,5).until(EC.visibility_of_element_located(((By.XPATH, './/p[@data-testid="price-info-value"]')))).text
+            sleep(1)
+        except:
+            print("Elemento não localizado")
+            break
         
         # Capturando a área do imóvel
         area_imovel = navegador.find_element(By.XPATH, './/p[@itemprop="floorSize"]/span[@data-cy="ldp-propertyFeatures-txt"]').text
@@ -156,16 +169,17 @@ for linha in sheet.iter_rows(2, sheet.max_row, values_only=True):
         print(f"Telefone 1: {telefone1}")
         print(f"Telefone 2: {telefone2}")
         print(f"URL da página: {url}")
-        print("-" * 70)
+        print("-" * 120)
         
         navegador.close()
         sleep(2)
         navegador.switch_to.window(aba_principal)
         sleep(2)
-    
-    for imovel in lista_imoveis:
-        print(f"{imovel['valor_imovel']:<10}{imovel['area_imovel']:<5}{imovel['cresci']:<10}{imovel['imobiliaria']:<20}{imovel['telefone1']:<10}{imovel['telefone2']:<10}{imovel['url']:<50}")
-        print("-" * 70)
+
+        contador += 1
+   # for imovel in lista_imoveis:
+   #     print(f"{imovel['valor_imovel']:<10}{imovel['area_imovel']:<5}{imovel['cresci']:<10}{imovel['imobiliaria']:<20}{imovel['telefone1']:<10}{imovel['telefone2']:<10}{imovel['url']:<50}")
+   #     print("-" * 70)
  
    
 input('Enter para encerrar...')
