@@ -16,7 +16,7 @@ import undetected_chromedriver as uc
 navegador = uc.Chrome()
 navegador.get("https://www.vivareal.com.br/")
 navegador.maximize_window()
-
+sleep(5)
 
 # Carregando a planilha
 planilha = 'Viva_Real.xlsx'
@@ -29,9 +29,7 @@ sleep(1)
 for linha in sheet.iter_rows(2, sheet.max_row +1, values_only=True):
     nome_bairro, nome_cidade, tipo_contrato = linha
     
-    print(nome_bairro)
-    print(nome_cidade)
-    print(tipo_contrato)
+    
     # Localizando elementos comprar ou alugar
     contrato_alugar = navegador.find_element(By.XPATH, './/button[@data-cy="home-rent-tb-tab"]').text
     contrato_comprar = navegador.find_element(By.XPATH, './/button[@data-cy="home-buy-tb-tab"]').text
@@ -70,7 +68,9 @@ for linha in sheet.iter_rows(2, sheet.max_row +1, values_only=True):
     
         
     for imovel in imoveis:
-        acessar_anuncio = navegador.find_element(By.XPATH, './/div[@class="property-card__content"]').click()
+        
+        aba_principal = navegador.current_window_handle
+        imovel.find_element(By.XPATH, './/div[@class="property-card__content"]').click()
         sleep(4)
         
         abas = navegador.window_handles
@@ -78,29 +78,52 @@ for linha in sheet.iter_rows(2, sheet.max_row +1, values_only=True):
         sleep(1)
         
         valor_imovel = navegador.find_element(By.XPATH, './/p[@data-testid="price-info-value"]').text
-        print(valor_imovel)
-
+        sleep(1)
         area_imovel = navegador.find_element(By.XPATH, './/p[@itemprop="floorSize"]/span[@data-cy="ldp-propertyFeatures-txt"]').text
-        print(area_imovel)
+        sleep(1)
+        #imobiliaria = navegador.find_element(By.XPATH, '(//div/a[@title="Loja Oficial do Anunciante"])[2]').text
         
-        cresci = navegador.find_element(By.XPATH, '/html/body/div[2]/div[2]/div[1]/div/div/div/div[1]/div/div/div[2]/p').text
-        print(cresci)
-        
-        imobiliaria = navegador.find_element(By.XPATH, '/html/body/div[2]/div[2]/div[1]/div/div/div/div[1]/div/div/div[2]/div/p').text
-        print(imobiliaria)
         
         botao_ver_telefone = navegador.find_element(By.XPATH, '/html/body/div[2]/div[1]/div[1]/div[2]/section/div[3]/button').click()
-        telefone1 = WebDriverWait(navegador, 5).until(EC.visibility_of_element_located((By.XPATH, './/a[@data-cy="lead-modalPhone-phonesList-txt"][1]')))
-        telefone2 = WebDriverWait(navegador, 5).until(EC.visibility_of_element_located((By.XPATH, './/a[@data-cy="lead-modalPhone-phonesList-txt"][2]')))
+        sleep(20)
         
-        url = navegador.current_url   
+        telefone1 = WebDriverWait(navegador, 5).until(EC.visibility_of_element_located((By.XPATH, './/a[@data-cy="lead-modalPhone-phonesList-txt"][1]'))).text
+        sleep(1)
+        
+        try:
+            
+            telefone2 = WebDriverWait(navegador, 5).until(EC.visibility_of_element_located((By.XPATH, '(.//a[@data-cy="lead-modalPhone-phonesList-txt"])[2]'))).text
+        except:
+            telefone2 = "Sem telefone"
+        sleep(1)
+        try:
+            cresci = WebDriverWait(navegador, 5).until(EC.visibility_of_element_located((By.XPATH, './/p[@class="ShortListingInfoSection_advertiser__EA_EW"]'))).text
+        
+        except :
+            cresci = "sem creci"
+        sleep(1)
+        
+        url = navegador.current_url  
+        sleep(1)
         
         lista_imoveis.append({'valor_imovel': valor_imovel, 'area_imovel': area_imovel, 'cresci': cresci,
-                              'imobiliaria': imobiliaria, 'telefone1': telefone1, 'telefone2': telefone2, 'url': url})
+                              'telefone1': telefone1, 'telefone2': telefone2, 'url': url})
+        
+        
+        print(tipo_contrato)
+        print(valor_imovel)
+        print(area_imovel)
+        print(cresci)
+        #print(imobiliaria)
+        print(telefone1)
+        print(telefone2)
+        print(url)
+        print("-" * 70)
         
         navegador.close()
-        
-        navegador.switch_to.window(aba_original)
+        sleep(2)
+        navegador.switch_to.window(aba_principal)
+        sleep(2)
     
     for imovel in lista_imoveis:
         print(f"{imovel['valor_imovel']:<10}{imovel['area_imovel']:<5}{imovel['cresci']:<10}{imovel['imobiliaria']:<20}{imovel['telefone1']:<10}{imovel['telefone2']:<10}{imovel['url']:<50}")
