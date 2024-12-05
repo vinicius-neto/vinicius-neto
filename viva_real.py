@@ -66,36 +66,49 @@ for linha in sheet.iter_rows(2, sheet.max_row +1, values_only=True):
     # Localizando elemento pai
     imoveis = navegador.find_elements(By.XPATH, './/div[@data-type="property"]')
     
-        
+    # Criando o loop que vai utilizar o elemento pai de base, onde vai passar anuncio por anuncio    
     for imovel in imoveis:
         
+        # Setando a aba da pesquisa como principal
         aba_principal = navegador.current_window_handle
+        
+        #Clicando no anuncio que abrirá em outra aba
         imovel.find_element(By.XPATH, './/div[@class="property-card__content"]').click()
         sleep(4)
         
+        # Setando a lista de abas do navegador para a variável abas
         abas = navegador.window_handles
+        
+        # Mudando o foco para a última aba aberta. (colocando -1 sempre vai buscar a ultima aba aberta)
         navegador.switch_to.window(abas[-1])
         sleep(1)
         
+        #Capturando o valor do imóvel
         valor_imovel = navegador.find_element(By.XPATH, './/p[@data-testid="price-info-value"]').text
         sleep(1)
+        
+        # Capturando a área do imóvel
         area_imovel = navegador.find_element(By.XPATH, './/p[@itemprop="floorSize"]/span[@data-cy="ldp-propertyFeatures-txt"]').text
         sleep(1)
         #imobiliaria = navegador.find_element(By.XPATH, '(//div/a[@title="Loja Oficial do Anunciante"])[2]').text
         
-        
+        # Localizando e clicando o elemento do botão que expõe o(s) telefone(s)
         botao_ver_telefone = navegador.find_element(By.XPATH, '/html/body/div[2]/div[1]/div[1]/div[2]/section/div[3]/button').click()
         sleep(20)
         
+        # Captura o primeiro telefone
         telefone1 = WebDriverWait(navegador, 5).until(EC.visibility_of_element_located((By.XPATH, './/a[@data-cy="lead-modalPhone-phonesList-txt"][1]'))).text
         sleep(1)
         
+        # Alguns anúncios tem dois telefones, então Vai aguardar 5 segundo e verificar se o elemento do segundo telefone está na tela,
+        # se estiver ele captura, se não estiver a variável receberá "Sem Telefone"
         try:
-            
             telefone2 = WebDriverWait(navegador, 5).until(EC.visibility_of_element_located((By.XPATH, '(.//a[@data-cy="lead-modalPhone-phonesList-txt"])[2]'))).text
         except:
             telefone2 = "Sem telefone"
         sleep(1)
+        
+        
         try:
             cresci = WebDriverWait(navegador, 5).until(EC.visibility_of_element_located((By.XPATH, './/p[@class="ShortListingInfoSection_advertiser__EA_EW"]'))).text
         
@@ -103,9 +116,11 @@ for linha in sheet.iter_rows(2, sheet.max_row +1, values_only=True):
             cresci = "sem creci"
         sleep(1)
         
+        # Capturando a URL da página atual
         url = navegador.current_url  
         sleep(1)
         
+        # Colocando as variáveis numa lista
         lista_imoveis.append({'valor_imovel': valor_imovel, 'area_imovel': area_imovel, 'cresci': cresci,
                               'telefone1': telefone1, 'telefone2': telefone2, 'url': url})
         
@@ -128,16 +143,6 @@ for linha in sheet.iter_rows(2, sheet.max_row +1, values_only=True):
     for imovel in lista_imoveis:
         print(f"{imovel['valor_imovel']:<10}{imovel['area_imovel']:<5}{imovel['cresci']:<10}{imovel['imobiliaria']:<20}{imovel['telefone1']:<10}{imovel['telefone2']:<10}{imovel['url']:<50}")
         print("-" * 70)
-    
-    
-    
-    
-    
-    
-        
-        
-
-
-
+ 
+   
 input('Enter para encerrar...')
-    
