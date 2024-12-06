@@ -32,7 +32,6 @@ for linha in sheet.iter_rows(2, sheet.max_row, values_only=True):
 
     # Comparando contrato da planilha com o do site
     if tipo_contrato == contrato_alugar:
-        #contrato_alugar = navegador.find_element(By.XPATH, './/button[@data-cy="home-rent-tb-tab"]').click()
         navegador.get("https://www.vivareal.com.br/aluguel/")
         sleep(3)
     else:
@@ -104,7 +103,7 @@ for linha in sheet.iter_rows(2, sheet.max_row, values_only=True):
         sleep(2)
 
         # Ao clicar pra visualizar o telefone a primeira vez, é solicitado algumas infos, então coloquei pra checar se o elemento
-        # de cadastro de nome está visível, se estiver vai seguinte o fluxo do cadastro, se não vai continuar o fluxo normal
+        # de cadastro de nome está visível. Se estiver, vai seguir o fluxo do cadastro, se não vai continuar o fluxo normal
         try:
             cadastro_nome = WebDriverWait(navegador, 3).until(EC.visibility_of_element_located((
                 By.XPATH, '(.//input[@placeholder="Nome"])[3]')))
