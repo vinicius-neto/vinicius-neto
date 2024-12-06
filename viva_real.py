@@ -22,16 +22,10 @@ planilha = 'Viva_Real.xlsx'
 abrir_planilha = load_workbook(planilha)
 sheet = abrir_planilha['Planilha1']
 
-
-
 # Percorrendo as linhas
 for linha in sheet.iter_rows(2, sheet.max_row, values_only=True):
     nome_bairro, nome_cidade, tipo_contrato = linha
-       
-    #Acessando o site
-    #navegador.get("https://www.vivareal.com.br/")
-    #sleep(3)
-       
+           
     # Criando as variáveis para comparar com a planilha e acessar o site baseado no resultado da condição
     contrato_alugar = "Alugar"
     contrato_comprar = "Comprar"
@@ -46,25 +40,12 @@ for linha in sheet.iter_rows(2, sheet.max_row, values_only=True):
         sleep(3)
 
     #Localizando campo de pesquisa e preenchendo.
-    preencher = navegador.find_element(By.XPATH, './/input[@name="search"]')
+    preencher = navegador.find_element(By.XPATH, './/input[@id="filter-location-search-input"]')
     preencher.clear()
     preencher.send_keys(f"{nome_bairro} {nome_cidade}")
-    sleep(2)
+    sleep(5)
     preencher.send_keys(Keys.ENTER)
     sleep(3)
-    
-    
-    # # Aguardando o elemento aparecer
-    # checkbox = WebDriverWait(navegador, 5).until(
-    #     EC.visibility_of_element_located((By.XPATH, './/input[@id="l-checkbox-4"]')))
-    
-    # # Clica no elemento
-    # checkbox.click()
-    # sleep(1)
-    
-    # # Clica no botão de buscar
-    # botao_buscar = navegador.find_element(By.XPATH, './/button[@type="submit"]').click()
-    # sleep(5)
     
     # Criando variável que vai receber lista de imoveis
     lista_imoveis = []
@@ -105,7 +86,7 @@ for linha in sheet.iter_rows(2, sheet.max_row, values_only=True):
         area_imovel = navegador.find_element(By.XPATH, './/p[@itemprop="floorSize"]/span[@data-cy="ldp-propertyFeatures-txt"]').text
         sleep(1)
         
-        
+        # Capturando a imobiliária
         imobiliaria = navegador.find_element(By.XPATH, '(//div/a[@title="Loja Oficial do Anunciante"])[2]').text
         sleep(1)
         
