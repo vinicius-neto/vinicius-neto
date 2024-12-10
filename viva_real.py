@@ -162,4 +162,4 @@ for linha in sheet.iter_rows(2, sheet.max_row, values_only=True):
    #     print("-" * 70)
  
    
-input('Enter para encerrar...')
+input("Enter para encerrar...")
