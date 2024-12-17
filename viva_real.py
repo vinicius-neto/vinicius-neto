@@ -11,6 +11,10 @@ from selenium.webdriver.support.wait import WebDriverWait
 from time import sleep
 from openpyxl import load_workbook
 import undetected_chromedriver as uc
+import requests
+import os
+from fpdf import FPDF
+from PIL import Image
 
 # Abrindo o navegador
 navegador = uc.Chrome()
@@ -52,6 +56,16 @@ for linha in sheet.iter_rows(2, sheet.max_row, values_only=True):
     # Localizando elemento pai
     imoveis = navegador.find_elements(By.XPATH, './/div[@data-type="property"]')
     
+    # Criando a classe PDF que vai colocar as imagens dentro dele
+    class PDF(FPDF):
+            def header(self):
+                self.set_font('Arial', 'B', 12)
+                self.cell(0,10, 'Imagens dos Anúncios', 0, 1, 'C')
+                self.ln(10)
+    pdf = PDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+
     # Contador para teste
     contador = 0
     # Criando o loop que vai utilizar o elemento pai de base, onde vai passar anuncio por anuncio    
@@ -87,6 +101,10 @@ for linha in sheet.iter_rows(2, sheet.max_row, values_only=True):
         
         # Capturando a imobiliária
         imobiliaria = navegador.find_element(By.XPATH, '(//div/a[@title="Loja Oficial do Anunciante"])[2]').text
+        sleep(1)
+        
+        # Capturando a URL da página atual
+        url = navegador.current_url  
         sleep(1)
         
         try:
@@ -132,15 +150,72 @@ for linha in sheet.iter_rows(2, sheet.max_row, values_only=True):
             telefone2 = "Sem telefone"
         sleep(1)
         
-        # Capturando a URL da página atual
-        url = navegador.current_url  
-        sleep(1)
+        # Fechando a tela de telefones
+        fechar_tela_telefone = navegador.find_element(By.XPATH, './/span[@data-testid="on-close"]')
+        fechar_tela_telefone.click()
+        sleep(1)    
+           
+        # Clicando no botão das fotos
+        botao_fotos = navegador.find_element(By.XPATH, '(.//button[@type="button"])[1]')
+        botao_fotos.click()
         
-        # Colocando as variáveis numa lista
-        lista_imoveis.append({'valor_imovel': valor_imovel, 'area_imovel': area_imovel, 'cresci': cresci,
-                              'telefone1': telefone1, 'telefone2': telefone2, 'url': url})
         
+        # Capturando as imagens
+        imagens_elementos = WebDriverWait(navegador, 5).until(EC.presence_of_all_elements_located((
+            By.XPATH, './/div[@class="image-container__item"]/picture/source[@type="image/webp"]')))
+        imagens_urls = [img.get_attribute("srcset") for img in imagens_elementos]
         
+        def is_valid_image(img_path):
+            try:
+                with Image.open(img_path) as img:
+                    img.verify()  # Valida a integridade da imagem
+                return True
+            except Exception as e:
+                print(f"Imagem inválida: {img_path}, erro: {e}")
+                return False
+    
+        # Criar diretório pra salvar as imagens
+        os.makedirs("imagens", exist_ok=True)
+        
+        # Listando e baixando as imagens
+        imagens_salvas = []
+        for i, url in enumerate(imagens_urls):
+            if not url:  # Ignorar URLs vazias
+                continue
+            try:
+                response = requests.get(url, timeout=10)
+                if response.status_code == 200:
+                    img_path = f"imagens/imagem_{i}.jpg"
+                    with open(img_path, "wb") as f:
+                        f.write(response.content)
+                    
+                    # Validar se o arquivo é uma imagem válida
+                    if is_valid_image(img_path):
+                        imagens_salvas.append(img_path)
+                    else:
+                        os.remove(img_path)  # Remover arquivos inválidos
+                else:
+                    print(f"Falha ao baixar a imagem {url}: Status {response.status_code}")
+            except requests.exceptions.RequestException as e:
+                print(f"Erro ao baixar a imagem {url}: {e}")
+        
+
+
+        # Adicionar as imagens no PDF
+        for img_path in imagens_salvas:
+            try:
+                pdf.set_font("Arial", size=12)
+                pdf.cell(0, 10, f"Imagem: {os.path.basename(img_path)}", ln=True)
+                pdf.image(img_path, x=10, y=pdf.get_y(), w=100)
+                pdf.ln(60)
+            except RuntimeError as e:
+                print(f"Erro ao adicionar a imagem {img_path} ao PDF: {e}")
+
+        # Salvar o PDF
+        pdf.output("imagens_anuncios.pdf")
+        print(f"PDF gerado com sucesso: imagens_anuncios.pdf")
+
+
         print(f"Tipo de contrato: {tipo_contrato}")
         print(f"Valor do imóvel: {valor_imovel}")
         print(f"Área do imóvel: {area_imovel}")
@@ -157,6 +232,7 @@ for linha in sheet.iter_rows(2, sheet.max_row, values_only=True):
         sleep(2)
 
         contador += 1
+
    # for imovel in lista_imoveis:
    #     print(f"{imovel['valor_imovel']:<10}{imovel['area_imovel']:<5}{imovel['cresci']:<10}{imovel['imobiliaria']:<20}{imovel['telefone1']:<10}{imovel['telefone2']:<10}{imovel['url']:<50}")
    #     print("-" * 70)
